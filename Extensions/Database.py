@@ -3,7 +3,7 @@ import sqlite3
         
 os.makedirs('Resources', exist_ok=True)
 
-DATABASE = r'Resources\data.db'
+DATABASE = r'Support files\data.db'
 
 def create_table():
     with sqlite3.connect(DATABASE) as conn:

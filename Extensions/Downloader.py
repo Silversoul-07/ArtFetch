@@ -4,12 +4,11 @@ import aiohttp
 from tqdm import tqdm
 from uuid import uuid4
 from hashlib import sha256
-from Modules.Database import fetch_data, batch_insert, batch_update
+from Extensions.Database import fetch_data, batch_insert, batch_update
 
 FETCH_LENGTH = 500
 os.makedirs('Downloads', exist_ok=True)
-hashes = set(open(r'Resources\hashes.txt', 'r').read().splitlines())
-new_hashes = set(open(r'new_hashes.txt', 'r').read().splitlines())
+hashes = set(open(r'Support files\hashes.txt', 'r').read().splitlines())
 semaphore = asyncio.Semaphore(20)
 
 def guess_file_type(url, response):
@@ -36,7 +35,6 @@ async def download(session, url, statuses, bar):
                     statuses[url] = 'success'
                 else:
                     statuses[url] = 'duplicate'
-                    new_hashes.add(hash_val)
 
         except Exception as e:
             statuses[url] = 'failed'
@@ -59,8 +57,6 @@ async def Downloader(links=None):
         await asyncio.gather(*tasks)
 
         batch_update(statuses)
-
-        open('new_hashes.txt','w').write('\n'.join(new_hashes))
 
         bar.close()
 
