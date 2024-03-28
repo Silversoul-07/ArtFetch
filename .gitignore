@@ -1,5 +1,8 @@
 *.exe
+*.db
+*.txt
+!hashes.txt
 
 Downloads/
+__pycache__/
 
-Resources/

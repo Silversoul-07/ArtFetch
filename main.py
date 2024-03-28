@@ -1,5 +1,4 @@
-from modules.Downloader import Downloader
+from Modules.Downloader import start
 
 if __name__ == "__main__":
-    downloader = Downloader()
-    downloader.start()
+    start()
