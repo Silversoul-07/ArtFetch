@@ -67,5 +67,5 @@ async def main(FETCH_LENGTH:int=0, links=None):
         print('Total Duplicate:', list(statuses.values()).count('duplicate'))
         print('Total Failed:', list(statuses.values()).count('failed'))
 
-def Donwloader(n, links=None):
+def Downloader(n, links=None):
     asyncio.run(main(n, links))

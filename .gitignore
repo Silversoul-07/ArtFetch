@@ -1,7 +1,9 @@
 *.exe
 *.db
 *.txt
+*.ipynb
 !hashes.txt
+!requirements.txt
 
 Downloads/
 __pycache__/
