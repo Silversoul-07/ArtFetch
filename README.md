@@ -1,1 +1,0 @@
-# Artista-Image-Downloader
