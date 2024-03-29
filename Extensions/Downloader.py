@@ -6,10 +6,9 @@ from uuid import uuid4
 from hashlib import sha256
 from Extensions.Database import fetch_data, batch_insert, batch_update
 
-FETCH_LENGTH = 100
 os.makedirs('Downloads', exist_ok=True)
 hashes_dict = {hash.strip(): 1 for hash in open(r'Support files\hashes.txt', 'r').readlines()}
-semaphore = asyncio.Semaphore(20)
+semaphore = asyncio.Semaphore(100)
 
 def guess_file_type(url, response):
     img_types = ['jpeg', 'jpg', 'png', 'gif', 'svg', 'webp', 'bmp', 'ico', 'tiff']
@@ -44,7 +43,7 @@ async def download(session, url, statuses, bar):
             bar.update(1)
 
 
-async def Downloader(links=None):
+async def Downloader(FETCH_LENGTH:int=0, links=None):
     async with aiohttp.ClientSession() as session:
         if links is None:
             statuses = fetch_data(FETCH_LENGTH)  # returns dict
@@ -61,7 +60,6 @@ async def Downloader(links=None):
         batch_update(statuses)
 
         hashes = [key for key, value in hashes_dict.items() if value > 0]
-        print(hashes)
         with open(r'Support files\hashes.txt', 'w', encoding='utf-8') as file:
             file.write('\n'.join(hashes))
 
@@ -69,5 +67,5 @@ async def Downloader(links=None):
         print('Total Duplicate:', list(statuses.values()).count('duplicate'))
         print('Total Failed:', list(statuses.values()).count('failed'))
 
-def start(links=None):
-    asyncio.run(Downloader(links))
+def start(n, links=None):
+    asyncio.run(Downloader(n, links))
