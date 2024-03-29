@@ -1,7 +1,7 @@
 import os
 import sqlite3   
         
-os.makedirs('Resources', exist_ok=True)
+os.makedirs('Support files', exist_ok=True)
 
 DATABASE = r'Support files\data.db'
 
