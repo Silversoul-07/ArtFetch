@@ -1,4 +1,4 @@
-from Extensions.Downloader import start
+import Extensions
 
 if __name__ == "__main__":
-    start(100)
+    Extensions.Donwloader(100)

@@ -43,7 +43,7 @@ async def download(session, url, statuses, bar):
             bar.update(1)
 
 
-async def Downloader(FETCH_LENGTH:int=0, links=None):
+async def main(FETCH_LENGTH:int=0, links=None):
     async with aiohttp.ClientSession() as session:
         if links is None:
             statuses = fetch_data(FETCH_LENGTH)  # returns dict
@@ -67,5 +67,5 @@ async def Downloader(FETCH_LENGTH:int=0, links=None):
         print('Total Duplicate:', list(statuses.values()).count('duplicate'))
         print('Total Failed:', list(statuses.values()).count('failed'))
 
-def start(n, links=None):
-    asyncio.run(Downloader(n, links))
+def Donwloader(n, links=None):
+    asyncio.run(main(n, links))
