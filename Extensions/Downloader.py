@@ -6,14 +6,14 @@ from uuid import uuid4
 from hashlib import sha256
 from Extensions.Database import fetch_data, batch_insert, batch_update
 
-FETCH_LENGTH = 500
+FETCH_LENGTH = 100
 os.makedirs('Downloads', exist_ok=True)
-hashes = set(open(r'Support files\hashes.txt', 'r').read().splitlines())
+hashes_dict = {hash.strip(): 1 for hash in open(r'Support files\hashes.txt', 'r').readlines()}
 semaphore = asyncio.Semaphore(20)
 
 def guess_file_type(url, response):
     img_types = ['jpeg', 'jpg', 'png', 'gif', 'svg', 'webp', 'bmp', 'ico', 'tiff']
-    ext = os.path.splitext(url)[1][1:]
+    ext = os.path.splitext(url)[1][1:].lower()
     if ext in img_types:
         return ext
     return response.headers.get('Content-Type', "nope/nope").split("/")[1] if '/' in response.headers.get('Content-Type') else 'jpg'
@@ -26,16 +26,17 @@ async def download(session, url, statuses, bar):
                 content = await response.read()
                 hash_val = sha256(content).hexdigest()
 
-                if hash_val not in hashes:
+                if hash_val not in hashes_dict:
                     filetype = guess_file_type(url, response)
                     filename = f'{uuid4().hex}.{filetype}'
                     with open(os.path.join('Downloads', filename), 'wb') as file:
                         file.write(content)
-
+                    hashes_dict[hash_val] = 0
                     statuses[url] = 'success'
                 else:
+                    hashes_dict[hash_val] += 1
                     statuses[url] = 'duplicate'
-
+                
         except Exception as e:
             statuses[url] = 'failed'
 
@@ -57,6 +58,10 @@ async def Downloader(links=None):
         await asyncio.gather(*tasks)
 
         batch_update(statuses)
+
+        hashes = [key for key, value in hashes_dict.items() if value > 0]
+        with open(r'Support files\hashes.txt', 'w') as file:
+            file.write('\n'.join(hashes))
 
         bar.close()
 
