@@ -56,14 +56,18 @@ async def Downloader(links=None):
 
         tasks = [download(session, url, statuses, bar) for url in statuses.keys()]
         await asyncio.gather(*tasks)
+        bar.close()
 
         batch_update(statuses)
 
         hashes = [key for key, value in hashes_dict.items() if value > 0]
-        with open(r'Support files\hashes.txt', 'w') as file:
+        print(hashes)
+        with open(r'Support files\hashes.txt', 'w', encoding='utf-8') as file:
             file.write('\n'.join(hashes))
 
-        bar.close()
+        print('\nTotal Success:', list(statuses.values()).count('success'))
+        print('Total Duplicate:', list(statuses.values()).count('duplicate'))
+        print('Total Failed:', list(statuses.values()).count('failed'))
 
 def start(links=None):
     asyncio.run(Downloader(links))

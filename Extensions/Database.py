@@ -27,6 +27,7 @@ def batch_insert(values:dict):
         for url, status in values.items():
             cursor.execute('INSERT INTO data (link, status) VALUES (?, ?)', (url, status))
         conn.commit()
+    print("Inserted into Database Successfully!")   
 
 def batch_update(values:dict):
     with sqlite3.connect(DATABASE) as conn:
@@ -34,6 +35,7 @@ def batch_update(values:dict):
         for url, status in values.items():
             cursor.execute('UPDATE data SET status=? WHERE link=?', (status, url))
         conn.commit()
+    print("Updated Database Successfully!")
 
 if __name__ == "__main__":
     test = fetch_data(10)
