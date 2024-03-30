@@ -12,8 +12,22 @@ def create_table():
         '''CREATE TABLE data(
             link VARCHAR2(),
             status VARCHAR2()
-            )'''
+            )
+        '''
         )
+
+def is_exists(links:list[str]) -> dict[str, str]:
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        existing_links = {}
+        for link in links:
+            cursor.execute('SELECT link FROM data WHERE link = ?', (link,))
+            result = cursor.fetchone()
+            if result:
+                existing_links[link] = 'exists'
+            else:
+                existing_links[link] = 'new'
+        return existing_links
 
 def fetch_data(n):
     with sqlite3.connect(DATABASE) as conn:

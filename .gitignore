@@ -1,10 +1,15 @@
+
+# Files to ignore
 *.exe
 *.db
 *.txt
 *.ipynb
+
+# Files to not ignore
 !hashes.txt
 !requirements.txt
 
+# Directories to ignore
 Downloads/
 __pycache__/
 
