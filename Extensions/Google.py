@@ -2,6 +2,8 @@ import time
 from tqdm import trange
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 def scroll_to_bottom(driver):
     last_height = driver.execute_script("return document.body.scrollHeight")
@@ -30,8 +32,10 @@ def scrape_images_from_google(query: str, limit: int = None) -> list[str]:
     options = webdriver.EdgeOptions()
     options.add_argument("--headless")
     options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--ignore-certificate-errors-spki-list')
     options.add_argument('--ignore-ssl-errors')
     driver = webdriver.Edge(options=options)
+    wait = WebDriverWait(driver, 10)
 
     try:
         driver.get(page_url)
@@ -48,20 +52,18 @@ def scrape_images_from_google(query: str, limit: int = None) -> list[str]:
 
         for i in trange(limit, desc="Extracting images", unit=" images"):
             try:
-                thumbnails[i].click()
+                driver.execute_script("arguments[0].click();", thumbnails[i])
                 time.sleep(1)
 
-                image = driver.find_element(By.XPATH, "//img[@class='sFlh5c pT0Scc iPVvYb']")
+                image = wait.until(EC.presence_of_element_located((By.XPATH, "//img[@class='sFlh5c pT0Scc']")))
                 src = image.get_attribute('src')
                 if src:
                     img_srcs.add(src)
 
             except Exception as e:
-                # print(f"Error: {e}")
-                pass
+                print(f"Error: {e}")
     except Exception as e:
-        # print(f"An error occurred: {e}")
-        pass
+        print(f"An error occurred: {e}")
     finally:
         driver.quit()
 

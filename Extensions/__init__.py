@@ -1,5 +1,5 @@
 from Extensions.Database import fetch_data, batch_insert, batch_update
-from Extensions.Downloader import Downloader
+from Extensions.Downloader import Downloader, decoder
 from Extensions.Google import scrape_images_from_google
 
 
