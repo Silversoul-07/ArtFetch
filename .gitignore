@@ -2,16 +2,18 @@
 # Files to ignore
 *.exe
 *.db
-*.txt
 *.ipynb
 
-# Files to not ignore
+# Files to ignore
 !hashes.txt
 !requirements.txt
 
 # Directories to ignore
 Downloads/
 __pycache__/
+
+# Directories to not ignore
+!Support files/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
