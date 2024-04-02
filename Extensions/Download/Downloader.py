@@ -5,7 +5,7 @@ import base64
 from tqdm import tqdm
 from uuid import uuid4
 from hashlib import sha256
-from Extensions.Database import fetch_data, batch_insert, batch_update
+from Extensions.Download.Database import fetch_data, batch_insert, batch_update
 
 os.makedirs('Downloads', exist_ok=True)
 hashes_dict = {hash.strip(): 1 for hash in open(r'Support files\hashes.txt', 'r').readlines()}
