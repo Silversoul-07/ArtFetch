@@ -1,20 +1,14 @@
 import os
 import sqlite3   
-        
+
 os.makedirs('Support files', exist_ok=True)
 
 DATABASE = r'Support files\data.db'
 
 def create_table():
     with sqlite3.connect(DATABASE) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-        '''CREATE TABLE data(
-            link VARCHAR2(),
-            status VARCHAR2()
-            )
-        '''
-        )
+        conn = conn.cursor()
+        conn.execute('CREATE TABLE IF NOT EXISTS data (sno INTEGER PRIMARY KEY AUTOINCREMENT, link TEXT, status TEXT)')
 
 def is_exists(links:list[str]) -> dict[str, str]:
     with sqlite3.connect(DATABASE) as conn:
@@ -32,7 +26,13 @@ def is_exists(links:list[str]) -> dict[str, str]:
 def fetch_data(n):
     with sqlite3.connect(DATABASE) as conn:
         cursor = conn.cursor()
-        cursor.execute('SELECT link,status FROM data WHERE status IS "pending" ORDER BY sno LIMIT ?', (n,))
+        cursor.execute('SELECT link,status FROM data WHERE status IS "failed" ORDER BY sno LIMIT ?', (n,))
+        return {row[0]:row[1] for row in cursor.fetchall()}
+    
+def fetch_all_data():
+    with sqlite3.connect(DATABASE) as conn:
+        cursor = conn.cursor()
+        cursor.execute('SELECT link,status FROM data WHERE status IS "failed"')
         return {row[0]:row[1] for row in cursor.fetchall()}
         
 def batch_insert(values:dict):
@@ -51,7 +51,5 @@ def batch_update(values:dict):
         conn.commit()
     print("Updated Database Successfully!")
 
-if __name__ == "__main__":
-    test = fetch_data(10)
-    print(type(test))
-    print(test)
+if not os.path.exists(DATABASE):
+    create_table()

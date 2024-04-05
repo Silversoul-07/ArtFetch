@@ -5,7 +5,7 @@ import base64
 from tqdm import tqdm
 from uuid import uuid4
 from hashlib import sha256
-from Extensions.Download.Database import fetch_data, batch_insert, batch_update
+from Extensions.Download.Database import fetch_data, batch_insert, batch_update, fetch_all_data
 
 os.makedirs('Downloads', exist_ok=True)
 hashes_dict = {hash.strip(): 1 for hash in open(r'Support files\hashes.txt', 'r').readlines()}
@@ -86,7 +86,10 @@ async def download(session, url, statuses, bar, semaphore, hashes_dict):
 
 async def main(fetch_length, links):
     async with aiohttp.ClientSession() as session:
-        if links is None:
+
+        if links is None and fetch_length == 0:
+            statuses = fetch_all_data()
+        elif links is None:
             statuses = fetch_data(fetch_length)  # returns dict
         else:
             links = set(links)
@@ -95,7 +98,7 @@ async def main(fetch_length, links):
 
         bar = tqdm(desc='Downloading', total=len(statuses), unit=' images', position=0)
 
-        tasks = [download(session, url, statuses, bar) for url in statuses.keys()]
+        tasks = [download(session, url, statuses, bar, semaphore, hashes_dict) for url in statuses.keys()]
         await asyncio.gather(*tasks)
         bar.close()
 
@@ -110,4 +113,5 @@ async def main(fetch_length, links):
         print('Total Failed:', list(statuses.values()).count('failed'))
 
 def Downloader(n=0, links=None):
-    asyncio.run(main(n, links))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main(n, links))
