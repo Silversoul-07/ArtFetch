@@ -1,3 +1,155 @@
+#Aznude
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import time
+from tqdm import trange
+
+def scrape_data_from_aznude(url, limit):
+    options = webdriver.EdgeOptions()
+    options.add_argument("--headless")
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--ignore-certificate-errors-spki-list')
+    options.add_argument('--ignore-ssl-errors')
+    driver = webdriver.Edge()
+    driver.get()
+
+    srcs = []
+    movie = driver.find_elements(By.CLASS_NAME, 'movie')
+
+    if limit is not None:
+        limit = min(limit, len(movie))
+    else:
+        limit = len(movie)
+    
+    for i in trange(limit, desc="Extracting images", unit=" images"):
+        driver.execute_script("arguments[0].click();", movie[i])
+        try:
+
+            iframe = driver.find_elements(By.CSS_SELECTOR, 'div.mfp-content > div > iframe')
+
+            if len(iframe) > 0:
+                driver.switch_to.frame(iframe[0])
+                video = driver.find_element(By.CSS_SELECTOR, 'div.jw-media.jw-reset > video')
+                srcs.append(video.get_attribute('src'))
+                driver.switch_to.default_content()
+                close = driver.find_element(By.CSS_SELECTOR, 'button.mfp-close')
+                driver.execute_script("arguments[0].click();", close)
+            else:
+                img = driver.find_element(By.CSS_SELECTOR, 'img.mfp-img')
+                srcs.append(img.get_attribute('src'))
+                close = driver.find_element(By.CSS_SELECTOR, 'button.mfp-close')
+                driver.execute_script("arguments[0].click();", close)
+
+        except Exception as e:
+            print("Error occured at", i, e)
+            break
+
+    driver.quit()
+
+    return srcs
+
+#bing
+import time
+from tqdm import trange
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+options = webdriver.EdgeOptions()
+options.add_argument('--ignore-certificate-errors')
+options.add_argument('--ignore-certificate-errors-spki-list')
+options.add_argument('--ignore-ssl-errors')
+driver = webdriver.Edge(options=options)
+wait = WebDriverWait(driver, 10)
+
+query = input("Enter the query: ")
+url = f"http://www.bing.com/images/search?q={query.replace(' ', '+')}"
+url
+driver.get(url)
+
+driver = webdriver.Edge()
+soup = BeautifulSoup(driver.page_source, 'html.parser')
+img = [json.loads(i.get('data-m'))['murl'] for i in soup.find_all('a', class_='richImgLnk')]
+len(img)
+with open('links.txt','a+',encoding='utf-8') as f:
+    for i in img:
+        f.write(i+'\n')
+
+#google
+import time
+from tqdm import trange
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+def scroll_to_bottom(driver):
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    page_ended = False
+    while not page_ended:
+        driver.execute_script(f"window.scrollTo(0, {last_height});")
+        time.sleep(1)
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if last_height == new_height:
+            page_ended = True
+        else:
+            last_height = new_height
+
+        try:
+            driver.find_element(By.CLASS_NAME, "LZ4I").click()
+        except Exception:
+            pass
+
+def scrape_images_from_google(query: str, limit: int = None) -> list[str]:
+    img_srcs = set()
+    if "http" in query:
+        page_url = query
+    else:
+        page_url = "https://www.google.com/search?q={}&source=lnms&tbm=isch&safe=off".format(query.replace(" ", "+"))
+    
+    options = webdriver.EdgeOptions()
+    options.add_argument("--headless")
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--ignore-certificate-errors-spki-list')
+    options.add_argument('--ignore-ssl-errors')
+    driver = webdriver.Edge(options=options)
+    wait = WebDriverWait(driver, 10)
+
+    try:
+        driver.get(page_url)
+        time.sleep(1)
+
+        scroll_to_bottom(driver)
+
+        thumbnails = driver.find_elements(By.XPATH, "//img[@class='rg_i Q4LuWd']")
+
+        if limit is not None:
+            limit = min(limit, len(thumbnails))
+        else:
+            limit = len(thumbnails)
+
+        for i in trange(limit, desc="Extracting images", unit=" images"):
+            try:
+                driver.execute_script("arguments[0].click();", thumbnails[i])
+                time.sleep(1)
+
+                image = wait.until(EC.presence_of_element_located((By.XPATH, "//img[@class='sFlh5c pT0Scc']")))
+                src = image.get_attribute('src')
+                if src:
+                    img_srcs.add(src)
+
+            except Exception as e:
+                print(f"Error: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+    finally:
+        driver.quit()
+
+    return img_srcs
+
+#pinterest
 from sys import exit
 import json
 import yaml

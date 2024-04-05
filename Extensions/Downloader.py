@@ -5,7 +5,67 @@ import base64
 from tqdm import tqdm
 from uuid import uuid4
 from hashlib import sha256
-from Extensions.Download.Database import fetch_data, batch_insert, batch_update, fetch_all_data
+
+import os
+import sqlite3   
+
+class Database:
+    def __init__(self, database:str = r'Support files\data.db'):
+        self.database = self.get_table()
+
+    def get_table(self):
+        with sqlite3.connect(self.database) as conn:
+            conn = conn.cursor()
+            if not os.path.exists(self.database):
+                conn.execute('''CREATE TABLE IF NOT EXISTS data 
+                            (sno INTEGER PRIMARY KEY AUTOINCREMENT, 
+                            link TEXT, 
+                            status TEXT)''')
+                return 
+            else:
+                return
+
+    def is_exists(self, links:list[str]) -> dict[str, str]:
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            existing_links = {}
+            for link in links:
+                cursor.execute('SELECT link FROM data WHERE link = ?', (link,))
+                result = cursor.fetchone()
+                if result:
+                    existing_links[link] = 'exists'
+                else:
+                    existing_links[link] = 'new'
+            return existing_links
+
+    def fetch_data(self, n):
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT link,status FROM data WHERE status IS "failed" ORDER BY sno LIMIT ?', (n,))
+            return {row[0]:row[1] for row in cursor.fetchall()}
+        
+    def fetch_all_data(self):
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT link,status FROM data WHERE status IS "failed"')
+            return {row[0]:row[1] for row in cursor.fetchall()}
+            
+    def batch_insert(self, values:dict):
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            for url, status in values.items():
+                cursor.execute('INSERT INTO data (link, status) VALUES (?, ?)', (url, status))
+            conn.commit()
+        print("Inserted into self.database Successfully!")   
+
+    def batch_update(self, values:dict):
+        with sqlite3.connect(self.database) as conn:
+            cursor = conn.cursor()
+            for url, status in values.items():
+                cursor.execute('UPDATE data SET status=? WHERE link=?', (status, url))
+            conn.commit()
+        print("Updated self.database Successfully!")
+
 
 os.makedirs('Downloads', exist_ok=True)
 hashes_dict = {hash.strip(): 1 for hash in open(r'Support files\hashes.txt', 'r').readlines()}
